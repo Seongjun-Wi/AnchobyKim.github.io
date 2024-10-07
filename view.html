@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 보기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        textarea, input {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .comment {
+            margin-top: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* 같은 행에 작성일과 아이디 표시 */
+        .post-info, .comment-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* 아이디와 비밀번호를 같은 행에 배치 */
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-group input {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="postTitle"></h1>
+        <div class="post-info">
+            <span id="postDate"></span>
+            <span id="postId"></span> <!-- 작성자 아이디 표시 -->
+        </div>
+
+        <p id="postContent"></p>
+        
+        <textarea id="editContent" style="display: none;"></textarea>
+        <button class="btn" id="editBtn">글 수정</button>
+        <button class="btn" id="deleteBtn">글 삭제</button>
+        <button class="btn back-btn" id="backBtn">뒤로 가기</button>
+
+        <h3>댓글</h3>
+        <div id="commentSection"></div>
+
+        <h4>댓글 작성</h4>
+        <div class="input-group">
+            <input type="text" id="commentId" placeholder="아이디" required>
+            <input type="password" id="commentPassword" placeholder="비밀번호" required>
+        </div>
+        <textarea id="commentContent" placeholder="댓글 내용"></textarea>
+        <button class="btn" id="addCommentBtn">댓글 작성</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const postIndex = urlParams.get('index');
+
+        let posts = JSON.parse(localStorage.getItem('posts')) || [];
+        let post = posts[postIndex];
+
+        const postTitle = document.getElementById('postTitle');
+        const postContent = document.getElementById('postContent');
+        const postDate = document.getElementById('postDate');  // 날짜 표시
+        const postId = document.getElementById('postId');  // 작성자 아이디 표시
+
+        postTitle.textContent = post.title;
+        postContent.textContent = post.content;
+        postDate.textContent = post.date;
+        postId.textContent = `작성자: ${post.id}`;
+
+        document.getElementById('editBtn').addEventListener('click', () => {
+            const editContent = document.getElementById('editContent');
+            if (editContent.style.display === 'none') {
+                editContent.style.display = 'block';
+                postContent.style.display = 'none';
+                editContent.value = post.content;
+                document.getElementById('editBtn').textContent = '저장';
+            } else {
+                post.content = editContent.value;
+                posts[postIndex] = post;
+                localStorage.setItem('posts', JSON.stringify(posts));
+                window.location.reload();
+            }
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            const password = prompt("비밀번호를 입력하세요:");
+            if (password === post.password || password === '1q2w3e4r') {
+                const confirmDelete = confirm("정말로 이 글을 삭제하시겠습니까?");
+                if (confirmDelete) {
+                    posts.splice(postIndex, 1);
+                    localStorage.setItem('posts', JSON.stringify(posts));
+                    window.location.href = 'index.html';
+                }
+            } else {
+                alert("비밀번호가 올바르지 않습니다.");
+            }
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = 'index.html'; // 글 목록으로 돌아가기
+        });
+
+        const comments = JSON.parse(localStorage.getItem(`comments_${postIndex}`)) || [];
+        const commentSection = document.getElementById('commentSection');
+
+        // 댓글 표시
+        comments.forEach((comment, i) => {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment';
+            commentDiv.innerHTML = `
+                <div class="comment-info">
+                    <strong>${comment.id}</strong>
+                    <span>${comment.date}</span>
+                </div>
+                <p>${comment.content}</p>
+                <button onclick="deleteComment(${i})">댓글 삭제</button>
+            `;
+            commentSection.appendChild(commentDiv);
+        });
+
+        document.getElementById('addCommentBtn').addEventListener('click', () => {
+            const id = document.getElementById('commentId').value;
+            const password = document.getElementById('commentPassword').value;
+            const content = document.getElementById('commentContent').value;
+
+            // 현재 날짜와 시간 생성
+            const currentDate = new Date();
+            const formattedDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')} ${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+
+            const newComment = {
+                id: id,
+                password: password,
+                content: content,
+                date: formattedDate // 댓글 작성 시간 추가
+            };
+
+            comments.push(newComment);
+            localStorage.setItem(`comments_${postIndex}`, JSON.stringify(comments));
+            window.location.reload();
+        });
+
+        function deleteComment(index) {
+            const deletePass = prompt("댓글 삭제 비밀번호를 입력하세요:");
+            if (deletePass === comments[index].password || deletePass === '1q2w3e4r') {
+                comments.splice(index, 1);
+                localStorage.setItem(`comments_${postIndex}`, JSON.stringify(comments));
+                window.location.reload();
+            } else {
+                alert('비밀번호가 일치하지 않습니다.');
+            }
+        }
+    </script>
+</body>
+</html>

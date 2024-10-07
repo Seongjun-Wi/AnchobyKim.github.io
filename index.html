@@ -3,142 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Development Blog</title>
+    <title>게시판</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .post-list {
+            list-style-type: none;
             padding: 0;
-            background-color: #f9f9f9;
         }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            text-align: center;
-        }
-        nav {
-            margin: 20px;
-        }
-        nav a {
-            margin-right: 15px;
-            color: #333;
-            text-decoration: none;
-        }
-        main {
-            margin: 20px;
-        }
-        footer {
-            text-align: center;
+
+        .post-list li {
             padding: 10px;
-            background-color: #333;
-            color: white;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .post-list li a {
+            text-decoration: none;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .post-list li a:hover {
+            text-decoration: underline;
+        }
+
+        .write-btn {
             position: fixed;
-            bottom: 0;
-            width: 100%;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        .post {
-            margin-bottom: 40px;
+
+        .write-btn:hover {
+            background-color: #0056b3;
         }
-        .comment-section {
+
+        .pagination {
             margin-top: 20px;
+            text-align: center;
         }
-        .comment {
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
+
+        .pagination button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        .search-box {
-            margin-bottom: 20px;
+
+        .pagination button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>게시판</h1>
+        <ul class="post-list" id="postList">
+            <!-- 게시글 목록이 여기에 추가됩니다 -->
+        </ul>
+        <button class="write-btn" onclick="location.href='write.html'">글쓰기</button>
+        <div class="pagination" id="pagination"></div>
+    </div>
 
-<header>
-    <h1>Game Development Blog</h1>
-</header>
+    <script>
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        const postList = document.getElementById('postList');
+        const pagination = document.getElementById('pagination');
 
-<nav>
-    <a href="#category1">Category 1</a>
-    <a href="#category2">Category 2</a>
-    <a href="#category3">Category 3</a>
-    <input type="text" id="search" placeholder="Search..." class="search-box">
-</nav>
+        const postsPerPage = 15;
+        let currentPage = 1;
 
-<main id="content">
-    <section class="post">
-        <h2>게임 개발 기록 #1</h2>
-        <p>여기에서 첫 번째 포스트의 내용을 입력하세요.</p>
-        <div class="comment-section">
-            <h3>댓글</h3>
-            <div id="comments"></div>
-            <h4>댓글 작성</h4>
-            <input type="text" id="commenterId" placeholder="아이디">
-            <input type="password" id="commenterPassword" placeholder="비밀번호">
-            <textarea id="commentText" placeholder="댓글을 입력하세요"></textarea>
-            <button onclick="addComment()">댓글 달기</button>
-        </div>
-    </section>
-</main>
+        function displayPosts(page) {
+            postList.innerHTML = '';
+            const start = (page - 1) * postsPerPage;
+            const end = start + postsPerPage;
+            const paginatedPosts = posts.slice().reverse().slice(start, end); // 최신 글이 먼저 나오도록 reverse()
 
-<footer>
-    <p>&copy; 2024 Game Development Blog</p>
-</footer>
-
-<script>
-    const comments = [];
-
-    function addComment() {
-        const id = document.getElementById('commenterId').value;
-        const password = document.getElementById('commenterPassword').value;
-        const text = document.getElementById('commentText').value;
-
-        if (!id || !password || !text) {
-            alert('모든 필드를 입력하세요.');
-            return;
+            paginatedPosts.forEach((post, index) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                const postIndex = posts.length - 1 - (start + index); // 역순 인덱스 계산
+                a.textContent = post.title;
+                a.href = `view.html?index=${postIndex}`;
+                li.appendChild(a);
+                postList.appendChild(li);
+            });
         }
 
-        const comment = { id, password, text };
-        comments.push(comment);
-        renderComments();
-        document.getElementById('commenterId').value = '';
-        document.getElementById('commenterPassword').value = '';
-        document.getElementById('commentText').value = '';
-    }
+        function displayPagination() {
+            pagination.innerHTML = '';
+            const pageCount = Math.ceil(posts.length / postsPerPage);
 
-    function deleteComment(index) {
-        const password = prompt('댓글을 삭제하려면 비밀번호를 입력하세요.');
-        if (password === comments[index].password) {
-            comments.splice(index, 1);
-            renderComments();
-        } else {
-            alert('비밀번호가 일치하지 않습니다.');
+            for (let i = 1; i <= pageCount; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                if (i === currentPage) {
+                    button.style.backgroundColor = '#0056b3'; // 현재 페이지 강조
+                }
+                button.addEventListener('click', () => {
+                    currentPage = i;
+                    displayPosts(currentPage);
+                    displayPagination(); // 페이지 버튼 상태 갱신
+                });
+                pagination.appendChild(button);
+            }
         }
-    }
 
-    function renderComments() {
-        const commentSection = document.getElementById('comments');
-        commentSection.innerHTML = '';
-        comments.forEach((comment, index) => {
-            commentSection.innerHTML += `
-                <div class="comment">
-                    <p><strong>${comment.id}</strong>: ${comment.text}</p>
-                    <button onclick="deleteComment(${index})">삭제</button>
-                </div>
-            `;
-        });
-    }
-
-    document.getElementById('search').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        const posts = document.querySelectorAll('.post');
-        posts.forEach(post => {
-            const content = post.textContent.toLowerCase();
-            post.style.display = content.includes(query) ? '' : 'none';
-        });
-    });
-</script>
-
+        displayPosts(currentPage);
+        displayPagination();
+    </script>
 </body>
 </html>

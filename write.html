@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글 작성하기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-group input {
+            width: 48%; /* 아이디와 비밀번호를 같은 행에 배치 */
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .back-btn {
+            margin-top: 10px;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>글 작성하기</h1>
+        <form id="postForm">
+            <div class="input-group">
+                <input type="text" id="id" name="id" placeholder="아이디" required>
+                <input type="password" id="password" name="password" placeholder="비밀번호" required>
+            </div>
+            
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title" required>
+            
+            <label for="content">내용</label>
+            <textarea id="content" name="content" rows="10" required></textarea>
+            
+            <button type="submit" class="submit-btn">작성 완료</button>
+        </form>
+
+        <button class="back-btn" id="backBtn">뒤로 가기</button> <!-- 뒤로 가기 버튼 추가 -->
+    </div>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('id').value;
+            const password = document.getElementById('password').value;
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            
+            // 현재 날짜와 시간 생성
+            const currentDate = new Date();
+            const formattedDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')} ${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+
+            const newPost = {
+                id: id,
+                password: password, // 비밀번호 저장
+                title: title,
+                content: content,
+                date: formattedDate,
+                comments: []
+            };
+
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            posts.push(newPost);
+            localStorage.setItem('posts', JSON.stringify(posts));
+
+            window.location.href = 'index.html';
+        });
+
+        // 뒤로 가기 버튼 클릭 시 index.html로 이동
+        document.getElementById('backBtn').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
