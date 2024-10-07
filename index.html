@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Development Blog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        nav {
+            margin: 20px;
+        }
+        nav a {
+            margin-right: 15px;
+            color: #333;
+            text-decoration: none;
+        }
+        main {
+            margin: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .post {
+            margin-bottom: 40px;
+        }
+        .comment-section {
+            margin-top: 20px;
+        }
+        .comment {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .search-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Game Development Blog</h1>
+</header>
+
+<nav>
+    <a href="#category1">Category 1</a>
+    <a href="#category2">Category 2</a>
+    <a href="#category3">Category 3</a>
+    <input type="text" id="search" placeholder="Search..." class="search-box">
+</nav>
+
+<main id="content">
+    <section class="post">
+        <h2>게임 개발 기록 #1</h2>
+        <p>여기에서 첫 번째 포스트의 내용을 입력하세요.</p>
+        <div class="comment-section">
+            <h3>댓글</h3>
+            <div id="comments"></div>
+            <h4>댓글 작성</h4>
+            <input type="text" id="commenterId" placeholder="아이디">
+            <input type="password" id="commenterPassword" placeholder="비밀번호">
+            <textarea id="commentText" placeholder="댓글을 입력하세요"></textarea>
+            <button onclick="addComment()">댓글 달기</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2024 Game Development Blog</p>
+</footer>
+
+<script>
+    const comments = [];
+
+    function addComment() {
+        const id = document.getElementById('commenterId').value;
+        const password = document.getElementById('commenterPassword').value;
+        const text = document.getElementById('commentText').value;
+
+        if (!id || !password || !text) {
+            alert('모든 필드를 입력하세요.');
+            return;
+        }
+
+        const comment = { id, password, text };
+        comments.push(comment);
+        renderComments();
+        document.getElementById('commenterId').value = '';
+        document.getElementById('commenterPassword').value = '';
+        document.getElementById('commentText').value = '';
+    }
+
+    function deleteComment(index) {
+        const password = prompt('댓글을 삭제하려면 비밀번호를 입력하세요.');
+        if (password === comments[index].password) {
+            comments.splice(index, 1);
+            renderComments();
+        } else {
+            alert('비밀번호가 일치하지 않습니다.');
+        }
+    }
+
+    function renderComments() {
+        const commentSection = document.getElementById('comments');
+        commentSection.innerHTML = '';
+        comments.forEach((comment, index) => {
+            commentSection.innerHTML += `
+                <div class="comment">
+                    <p><strong>${comment.id}</strong>: ${comment.text}</p>
+                    <button onclick="deleteComment(${index})">삭제</button>
+                </div>
+            `;
+        });
+    }
+
+    document.getElementById('search').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const posts = document.querySelectorAll('.post');
+        posts.forEach(post => {
+            const content = post.textContent.toLowerCase();
+            post.style.display = content.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
